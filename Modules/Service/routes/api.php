@@ -1,5 +1,7 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
+use Modules\Service\Http\Controllers\Backend\API\FavoriteController;
 use Modules\Service\Http\Controllers\Backend\API\ServiceController;
 
 Route::get('service-list', [ServiceController::class, 'serviceList']);
@@ -18,7 +20,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::post('service-detail', [ServiceController::class, 'serviceDetails']);
     Route::get('search-service', [ServiceController::class, 'searchServices']);
+
+    Route::get('favorite-list', [FavoriteController::class, 'index']);
+    Route::get('add-favorite/{id}', [FavoriteController::class, 'store']);
+    Route::get('delete-favorite/{id}', [FavoriteController::class, 'destroy']);
 });
-?>
-
-

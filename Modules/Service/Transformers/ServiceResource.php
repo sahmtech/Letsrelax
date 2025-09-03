@@ -3,6 +3,8 @@
 namespace Modules\Service\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
+use Modules\Service\Models\Favorite;
 
 class ServiceResource extends JsonResource
 {
@@ -23,6 +25,7 @@ class ServiceResource extends JsonResource
             'default_price' => $this->default_price,
             'status' => $this->status,
             'category_id' => $this->category_id,
+            'is_favorite' =>   Favorite::where('user_id', Auth::user()->id)->where('service_id', $this->id)->first() ? 1 : 0,
             'category_name' => optional($this->category)->name,
             'sub_category_id' => $this->sub_category_id,
             'service_image' => $this->feature_image,
