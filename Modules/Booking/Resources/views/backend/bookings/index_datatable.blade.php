@@ -62,6 +62,7 @@
                             </select>
                         </div>
                     </div>
+                    
                     <div class="input-group flex-nowrap">
                         <span class="input-group-text" id="addon-wrapping"><i
                                 class="fa-solid fa-magnifying-glass"></i></span>

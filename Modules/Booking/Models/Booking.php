@@ -2,6 +2,7 @@
 
 namespace Modules\Booking\Models;
 
+use App\Models\Address;
 use App\Models\BaseModel;
 use App\Models\Branch;
 use App\Models\User;
@@ -31,6 +32,7 @@ class Booking extends BaseModel
 
         'user_id' => 'integer',
         'branch_id' => 'integer',
+        'address_id' => 'integer',
 
     ];
 
@@ -92,7 +94,6 @@ class Booking extends BaseModel
     public function booking_service()
     {
         return $this->hasMany(BookingService::class, 'booking_id', 'id')->with('employee', 'service');
-
     }
 
     public function service()
@@ -105,6 +106,10 @@ class Booking extends BaseModel
         return $this->hasManyThrough(Service::class, BookingService::class, 'booking_id', 'id', 'id', 'service_id');
     }
 
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id');
+    }
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -166,7 +171,7 @@ class Booking extends BaseModel
               WHEN JSON_UNQUOTE(JSON_EXTRACT(tx.tax_info, \'$.type\')) = \'fixed\' THEN JSON_UNQUOTE(JSON_EXTRACT(tx.tax_info, \'$.tax_amount\'))
               ELSE 0
           END) AS total_tax_amount'),
-          DB::raw('
+            DB::raw('
           COALESCE(SUM(DISTINCT booking_services.service_price), 0) +
           SUM(CASE 
               WHEN JSON_UNQUOTE(JSON_EXTRACT(tx.tax_info, \'$.type\')) = \'percent\' 
@@ -206,35 +211,34 @@ class Booking extends BaseModel
     }
 
     public static function totalservice($taxAmount, $tipAmount)
-{
-    return self::select(
-        DB::raw('DATE(bookings.start_date_time) AS start_date_time'),
-        DB::raw('COUNT(DISTINCT bookings.id) AS total_bookings'),
-        DB::raw('COALESCE(SUM(booking_services.service_price), 0) as total_service_amount'),
-        DB::raw('
+    {
+        return self::select(
+            DB::raw('DATE(bookings.start_date_time) AS start_date_time'),
+            DB::raw('COUNT(DISTINCT bookings.id) AS total_bookings'),
+            DB::raw('COALESCE(SUM(booking_services.service_price), 0) as total_service_amount'),
+            DB::raw('
             COALESCE(SUM(booking_services.service_price), 0) +
             ' . $taxAmount . ' +
             ' . $tipAmount . ' AS total_amount')
-    )
-        ->leftJoin('booking_services', 'bookings.id', '=', 'booking_services.booking_id')
-        ->where('bookings.status', 'completed')
-        ->groupBy(DB::raw('DATE(bookings.start_date_time)'));
-}
-public static function tipamount()
-{
-    return self::select(
-        DB::raw('DATE(bookings.start_date_time) AS start_date_time'), 
-        DB::raw('COUNT(DISTINCT bookings.id) AS total_bookings'),
-        DB::raw('COALESCE(SUM(tip_earnings.tip_amount), 0) AS total_tip_amount') 
-    )
-    ->leftJoin('tip_earnings', function ($join) {
-        $join->on('bookings.id', '=', 'tip_earnings.tippable_id')
-            ->where('tip_earnings.tippable_type', '=', 'Modules\\Booking\\Models\\Booking');
-    })
-    ->where('bookings.status', 'completed') 
-    ->groupBy(DB::raw('DATE(bookings.start_date_time)')); 
-
-}
+        )
+            ->leftJoin('booking_services', 'bookings.id', '=', 'booking_services.booking_id')
+            ->where('bookings.status', 'completed')
+            ->groupBy(DB::raw('DATE(bookings.start_date_time)'));
+    }
+    public static function tipamount()
+    {
+        return self::select(
+            DB::raw('DATE(bookings.start_date_time) AS start_date_time'),
+            DB::raw('COUNT(DISTINCT bookings.id) AS total_bookings'),
+            DB::raw('COALESCE(SUM(tip_earnings.tip_amount), 0) AS total_tip_amount')
+        )
+            ->leftJoin('tip_earnings', function ($join) {
+                $join->on('bookings.id', '=', 'tip_earnings.tippable_id')
+                    ->where('tip_earnings.tippable_type', '=', 'Modules\\Booking\\Models\\Booking');
+            })
+            ->where('bookings.status', 'completed')
+            ->groupBy(DB::raw('DATE(bookings.start_date_time)'));
+    }
 
     public static function overallReport()
     {
@@ -320,6 +324,4 @@ public static function tipamount()
     {
         return $this->hasMany(BookingPackageService::class, 'booking_id', 'id');
     }
-
-
 }

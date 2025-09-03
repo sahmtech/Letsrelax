@@ -3,8 +3,10 @@
 namespace Modules\Booking\Http\Controllers\Backend\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Address;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Modules\Booking\Models\Booking;
 use Modules\Booking\Models\BookingService;
@@ -61,8 +63,20 @@ class BookingsController extends Controller
             }
         }
 
+        if ($request->has('address_id')) {
+            $user_address =  Address::where('addressable_id', $userId)->where('id', $request->address_id)->first();
+            if (!$user_address) {
+                return $this->sendError(
+                    "Address not found",
+                    ["id" => "No address exists with ID: $request->address_id"],
+                    404
+                );
+            }
+            $data['address_id'] = $request->address_id;
+        }
+
         $booking = Booking::create($data);
-      
+
         if (!empty($data['coupon_code'])) {
             $coupon = UserCouponRedeem::where('coupon_code', $data['coupon_code'])->first();
             $coupon_data = Coupon::where('coupon_code', $data['coupon_code'])->first();
@@ -119,7 +133,7 @@ class BookingsController extends Controller
                             'coupon_id' => $coupon_data->id,
                             'booking_id' => $booking->id,
                         ];
-                  
+
                         UserCouponRedeem::create($redeemCoupon);
                         $total_coupon = UserCouponRedeem::where('coupon_code', $data['coupon_code'])->count();
                         if ($total_coupon == $coupon_data->use_limit) {
@@ -190,8 +204,6 @@ class BookingsController extends Controller
         } else  if ($alreadyPurchased == false) {
             $this->updateAPIBookingPackage($request->packages, $booking->id, $request->employee_id, $userId, $is_reclaim);
             $this->storeApiUserPackage($booking->id);
-
-
         }
 
 
@@ -208,29 +220,43 @@ class BookingsController extends Controller
             $type = 'new_booking';
             $messageTemplate = 'New booking #[[booking_id]] has been booked.';
             $notify_message = str_replace('[[booking_id]]', $booking->id, $messageTemplate);
-            $this->sendNotificationOnBookingUpdate($type,$notify_message,$booking);
-
+            $this->sendNotificationOnBookingUpdate($type, $notify_message, $booking);
         } catch (\Exception $e) {
             \Log::error($e->getMessage());
         }
-    
+
         return response()->json(['message' => $message, 'status' => true, 'booking_id' => $booking->id], 200);
     }
 
     public function update(Request $request)
     {
         $booking = Booking::findOrFail($request->id);
-
+        $userId = Auth::user()->id;
         if ($request->has('status') && $request->status == 'cancelled') {
 
             if (!in_array($booking->status, ['check_in', 'checkout', 'completed'])) {
 
-                $booking->update(['status' => 'cancelled']);
+
+                $booking->update([
+                    'status' => 'cancelled',
+                    'cancellation_note' => $request->cancellation_note
+                ]);
             } else {
 
                 return response()->json(['message' => "Cannot cancel a booking with status: {$booking->status}"], 422);
             }
         } else {
+
+            if ($request->has('address_id')) {
+                $user_address =  Address::where('addressable_id', $userId)->where('id', $request->address_id)->first();
+                if (!$user_address) {
+                    return $this->sendError(
+                        "Address not found",
+                        ["id" => "No address exists with ID: $request->address_id"],
+                        404
+                    );
+                }
+            }
 
             $booking->update($request->all());
 
@@ -279,7 +305,7 @@ class BookingsController extends Controller
 
         if (isset($notify_type)) {
             try {
-                $this->sendNotificationOnBookingUpdate($notify_type,'',$booking);
+                $this->sendNotificationOnBookingUpdate($notify_type, '', $booking);
             } catch (\Exception $e) {
                 \Log::error($e->getMessage());
             }
@@ -434,7 +460,7 @@ class BookingsController extends Controller
     {
         $data = $request->all();
         $id = $request->id;
-
+        $userId = Auth::user()->id;
         if (!empty($request->date)) {
             $data['start_date_time'] = $request->date;
         }
@@ -443,6 +469,19 @@ class BookingsController extends Controller
         $bookingdata->update($data);
 
         $booking = Booking::findOrFail($id);
+
+        if ($request->has('address_id')) {
+
+            $user_address =  Address::where('addressable_id', $userId)->where('id', $request->address_id)->first();
+            if (!$user_address) {
+                return $this->sendError(
+                    "Address not found",
+                    ["id" => "No address exists with ID: $request->address_id"],
+                    404
+                );
+            }
+            $data['address_id'] = $request->address_id;
+        }
 
         $booking->update($data);
 

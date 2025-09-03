@@ -102,22 +102,22 @@ return [
                 ],
             ],
         ],
-        [
-            'start_icon' => 'fa-solid fa-cubes',
-            'title' => 'sidebar.package',
-            'route' => 'backend.package.index',
-            'active' => ['app/package'],
-            'permission' => ['view_role_permissions'],
-            'order' => 7,
-        ],
-        [
-            'start_icon' => 'fa-solid fa-people-carry-box',
-            'title' => 'sidebar.customer_packages',
-            'route' => 'backend.clientPackage',
-            'active' => ['app/client-package'],
-            'permission' => ['view_role_permissions'],
-            'order' => 7,
-        ],
+        // [
+        //     'start_icon' => 'fa-solid fa-cubes',
+        //     'title' => 'sidebar.package',
+        //     'route' => 'backend.package.index',
+        //     'active' => ['app/package'],
+        //     'permission' => ['view_role_permissions'],
+        //     'order' => 7,
+        // ],
+        // [
+        //     'start_icon' => 'fa-solid fa-people-carry-box',
+        //     'title' => 'sidebar.customer_packages',
+        //     'route' => 'backend.clientPackage',
+        //     'active' => ['app/client-package'],
+        //     'permission' => ['view_role_permissions'],
+        //     'order' => 7,
+        // ],
         [
             'title' => 'sidebar.users',
             'menu_item_type' => 'static',
@@ -398,6 +398,7 @@ return [
                     'order' => 1,
                     'menu_level' => 1,
                 ],
+
                 [
                     'menu_type' => 'horizontal',
                     'start_icon' => 'fa-brands fa-servicestack',
@@ -653,6 +654,23 @@ return [
                     'menu_level' => 1,
                 ],
             ],
+        ],
+
+        [
+            'start_icon' => 'fa-solid fa-cubes',
+            'title' => 'sidebar.package',
+            'route' => 'backend.package.index',
+            'active' => ['app/package'],
+            'permission' => ['view_role_permissions'],
+            'order' => 7,
+        ],
+        [
+            'start_icon' => 'fa-solid fa-people-carry-box',
+            'title' => 'sidebar.customer_packages',
+            'route' => 'backend.clientPackage',
+            'active' => ['app/client-package'],
+            'permission' => ['view_role_permissions'],
+            'order' => 7,
         ],
     ],
     'menu_routes' => [

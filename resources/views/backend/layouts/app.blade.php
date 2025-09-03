@@ -64,6 +64,30 @@
             }
             ?>
         }
+
+            .cancellation-icon {
+            position: relative;
+            cursor: pointer;
+            margin-right: 8px;
+            color: #6c757d;
+            transition: color 0.3s ease;
+        }
+
+        .cancellation-icon:hover {
+            color: #495057;
+        }
+
+        .tooltip {
+            --bs-tooltip-bg: #dc3545;
+            --bs-tooltip-color: white;
+        }
+
+        .tooltip-inner {
+            max-width: 250px;
+            text-align: right;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
     </style>
 
     <!-- Scripts -->
